@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+@layer base {
+  body {
+    font-family: "Poppins", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Archivo", sans-serif;
+  }
+  p {
+    font-size: 1rem;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold leading-tight;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl lg:text-5xl font-semibold leading-tight;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl lg:text-4xl font-semibold leading-snug;
+  }
+
+  h4 {
+    @apply text-xl md:text-2xl lg:text-3xl font-medium leading-snug;
+  }
+
+  h5 {
+    @apply text-lg md:text-xl lg:text-2xl font-medium leading-relaxed;
+  }
+
+  h6 {
+    @apply text-base md:text-lg lg:text-xl font-medium leading-relaxed;
+  }
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
