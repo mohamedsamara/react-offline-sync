@@ -98,18 +98,21 @@ registerRoute(
   })
 );
 
-// Activate event: Clean up old caches when a new service worker takes control
+// Activate event: Clean up old caches and claim control immediately
 self.addEventListener("activate", (event: ExtendableEvent) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (![ASSETS_CACHE, API_CACHE].includes(cacheName)) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((cacheNames) =>
+        Promise.all(
+          cacheNames.map((cacheName) => {
+            if (![ASSETS_CACHE, API_CACHE].includes(cacheName)) {
+              return caches.delete(cacheName);
+            }
+          })
+        )
+      ),
+    ])
   );
 });
 

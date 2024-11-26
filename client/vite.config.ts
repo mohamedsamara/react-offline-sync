@@ -16,10 +16,12 @@ export default defineConfig({
       ],
       registerType: "autoUpdate",
       strategies: "injectManifest",
+
       srcDir: "src",
       filename: "sw.ts",
       devOptions: {
         enabled: true,
+        type: "module",
       },
       workbox: {
         runtimeCaching: [

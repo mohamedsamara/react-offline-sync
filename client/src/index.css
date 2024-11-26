@@ -2,20 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
-}
+/* 
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+} */
 
 @layer base {
+  html,
+  body {
+    @apply h-full m-0 overflow-hidden;
+  }
+
+  #root {
+    @apply h-full;
+  }
+
   body {
     font-family: "Poppins", sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -41,34 +46,39 @@
   }
 
   h1 {
-    @apply text-4xl md:text-5xl lg:text-6xl font-bold leading-tight;
+    @apply text-4xl font-bold leading-tight md:text-5xl lg:text-6xl;
   }
 
   h2 {
-    @apply text-3xl md:text-4xl lg:text-5xl font-semibold leading-tight;
+    @apply text-3xl font-semibold leading-tight md:text-4xl lg:text-5xl;
   }
 
   h3 {
-    @apply text-2xl md:text-3xl lg:text-4xl font-semibold leading-snug;
+    @apply text-2xl font-semibold leading-snug md:text-3xl lg:text-4xl;
   }
 
   h4 {
-    @apply text-xl md:text-2xl lg:text-3xl font-medium leading-snug;
+    @apply text-xl font-medium leading-snug md:text-2xl lg:text-3xl;
   }
 
   h5 {
-    @apply text-lg md:text-xl lg:text-2xl font-medium leading-relaxed;
+    @apply text-lg font-medium leading-relaxed md:text-xl lg:text-2xl;
   }
 
   h6 {
-    @apply text-base md:text-lg lg:text-xl font-medium leading-relaxed;
+    @apply text-base font-medium leading-relaxed md:text-lg lg:text-xl;
   }
 }
 
-html,
-body,
-#root {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }
