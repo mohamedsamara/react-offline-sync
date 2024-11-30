@@ -1,4 +1,4 @@
-import { SYNC_NOTES } from "lib/constants";
+import { POST_MESSAGES, SYNC_NOTES } from "lib/constants";
 import { syncAddedNotes, syncDeletedNotes, syncUpdatedNotes } from "./notes";
 
 export const triggerSyncTask = async (tag: string) => {
@@ -20,17 +20,23 @@ export const syncEvent = (event: any) => {
   switch (event.tag) {
     case SYNC_NOTES.NEW:
       event.waitUntil(
-        syncAddedNotes().then(() => sendPostMessage(SYNC_NOTES.SYNC_COMPLETE))
+        syncAddedNotes().then(() =>
+          sendPostMessage(POST_MESSAGES.NOTES_SYNC_COMPLETE)
+        )
       );
       break;
     case SYNC_NOTES.DELETED:
       event.waitUntil(
-        syncDeletedNotes().then(() => sendPostMessage(SYNC_NOTES.SYNC_COMPLETE))
+        syncDeletedNotes().then(() =>
+          sendPostMessage(POST_MESSAGES.NOTES_SYNC_COMPLETE)
+        )
       );
       break;
     case SYNC_NOTES.UPDATED:
       event.waitUntil(
-        syncUpdatedNotes().then(() => sendPostMessage(SYNC_NOTES.SYNC_COMPLETE))
+        syncUpdatedNotes().then(() =>
+          sendPostMessage(POST_MESSAGES.NOTES_SYNC_COMPLETE)
+        )
       );
       break;
     default:
@@ -38,10 +44,10 @@ export const syncEvent = (event: any) => {
   }
 };
 
-export const sendPostMessage = (action: string) => {
+export const sendPostMessage = (action: string, data?: null) => {
   self.clients.matchAll().then((clients) => {
     clients.forEach((client) => {
-      client.postMessage({ action });
+      client.postMessage({ action, data });
     });
   });
 };

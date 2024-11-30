@@ -18,3 +18,12 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
 }
+
+export interface NotificationPayload {
+  title: string;
+  body: string;
+  icon: string;
+  tag: string;
+  badge: string;
+  url: string;
+}

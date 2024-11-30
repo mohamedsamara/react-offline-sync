@@ -7,6 +7,7 @@ import { NoteFormValues, noteSchema } from "lib/validations";
 import { Note } from "lib/types";
 import { useNotes } from "lib/hooks";
 import EditNote from "./EditNote";
+import PushNotification from "./PushNotification";
 
 const Notes = () => {
   const { notes, addNote, deleteNote, updateNote } = useNotes();
@@ -44,7 +45,11 @@ const Notes = () => {
       <main className="flex flex-col h-screen overflow-auto">
         <div className="container p-4 mx-auto my-8">
           <Card>
-            <h4>Offline Notes App</h4>
+            <div className="flex items-center justify-between">
+              <h4>Offline Notes App</h4>
+              <PushNotification />
+            </div>
+
             <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
               <div>
                 <Label htmlFor="title">Title</Label>

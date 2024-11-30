@@ -8,7 +8,9 @@ import {
 } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 
-import { syncEvent } from "./lib/sync";
+import { sendPostMessage, syncEvent } from "./lib/sync";
+import { NotificationPayload } from "./lib/types";
+import { POST_MESSAGES } from "./lib/constants";
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -103,6 +105,82 @@ registerRoute(
 // Background sync with the `sync` event
 self.addEventListener("sync", (event: any) => {
   syncEvent(event);
+});
+
+// Push event listener
+self.addEventListener("push", (event: PushEvent) => {
+  let payload = {} as NotificationPayload;
+  if (event.data) {
+    payload = event.data.json();
+  }
+
+  const title = payload.title || "New Notification";
+  const options = {
+    body: payload.body || "You have a new notification!",
+    icon: payload.icon || "pwa-192x192.png",
+    badge: payload.badge || "pwa-192x192.png",
+    sound: "notification.mp3",
+    data: {
+      url: payload.url || "/",
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+  sendPostMessage(POST_MESSAGES.NOTIFICATION_RECEIVED);
+});
+
+// Notification click event listener
+self.addEventListener("notificationclick", async (event: NotificationEvent) => {
+  event.notification.close();
+
+  // Check if there is a URL in the notification data
+  const notificationUrl = event.notification.data?.url;
+
+  if (notificationUrl && notificationUrl !== "/") {
+    try {
+      const clientsList = await clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+
+      // Check if a client with the URL is already open
+      for (const client of clientsList) {
+        if (client.url === notificationUrl) {
+          if (!client.focused) {
+            await client.focus();
+          }
+          return;
+        }
+      }
+
+      // If no matching client is found, open a new window with the URL
+      await clients.openWindow(notificationUrl);
+    } catch (error) {
+      console.error("Failed to handle notification click with URL:", error);
+    }
+  } else {
+    // If there is no URL, focus an existing client or open the default page
+    try {
+      const clientsList = await clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+
+      for (const client of clientsList) {
+        if (client.url === "/" && client.focused) {
+          return;
+        }
+        client.focus();
+      }
+
+      // If no clients are focused or found, open a default page
+      if (clientsList.length === 0) {
+        await clients.openWindow("/");
+      }
+    } catch (error) {
+      console.error("Failed to handle notification click without URL:", error);
+    }
+  }
 });
 
 // Activate event: Clean up old caches and claim control immediately

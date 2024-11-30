@@ -11,7 +11,7 @@ import { createNote, deleteNote, updateNote } from "lib/api";
 import { triggerSyncTask } from "lib/sync";
 import { Note } from "lib/types";
 import { NoteFormValues } from "lib/validations";
-import { SYNC_NOTES } from "lib/constants";
+import { POST_MESSAGES, SYNC_NOTES } from "lib/constants";
 import { useOnlineStatus } from "lib/hooks";
 
 export const useNotes = () => {
@@ -30,10 +30,10 @@ export const useNotes = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // SYNC_COMPLETE Listener
+  // NOTES_SYNC_COMPLETE Listener
   useEffect(() => {
     const syncMessageListener = (event: MessageEvent) => {
-      if (event.data && event.data.action === SYNC_NOTES.SYNC_COMPLETE)
+      if (event.data && event.data.action === POST_MESSAGES.NOTES_SYNC_COMPLETE)
         refreshNotes();
     };
     navigator.serviceWorker.addEventListener("message", syncMessageListener);
