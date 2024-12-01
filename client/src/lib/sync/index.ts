@@ -1,6 +1,8 @@
 import { POST_MESSAGES, SYNC_NOTES } from "lib/constants";
 import { syncAddedNotes, syncDeletedNotes, syncUpdatedNotes } from "./notes";
 
+declare const self: ServiceWorkerGlobalScope;
+
 export const triggerSyncTask = async (tag: string) => {
   const registration = await navigator.serviceWorker.ready;
 

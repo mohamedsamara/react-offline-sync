@@ -8,7 +8,6 @@ const NoteItem = ({ note }: { note: Note }) => {
       <span className="text-red-500">{note.syncStatus}</span>
       <div>{note.createdAt}</div>
       <div>{note.updatedAt}</div>
-      <div>ID:{note.id}</div>
       <div>uid: {note.uid}</div>
     </div>
   );

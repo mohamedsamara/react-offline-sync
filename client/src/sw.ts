@@ -138,7 +138,7 @@ self.addEventListener("notificationclick", async (event: NotificationEvent) => {
 
   if (notificationUrl && notificationUrl !== "/") {
     try {
-      const clientsList = await clients.matchAll({
+      const clientsList = await self.clients.matchAll({
         type: "window",
         includeUncontrolled: true,
       });
@@ -154,14 +154,14 @@ self.addEventListener("notificationclick", async (event: NotificationEvent) => {
       }
 
       // If no matching client is found, open a new window with the URL
-      await clients.openWindow(notificationUrl);
+      await self.clients.openWindow(notificationUrl);
     } catch (error) {
       console.error("Failed to handle notification click with URL:", error);
     }
   } else {
     // If there is no URL, focus an existing client or open the default page
     try {
-      const clientsList = await clients.matchAll({
+      const clientsList = await self.clients.matchAll({
         type: "window",
         includeUncontrolled: true,
       });
@@ -175,7 +175,7 @@ self.addEventListener("notificationclick", async (event: NotificationEvent) => {
 
       // If no clients are focused or found, open a default page
       if (clientsList.length === 0) {
-        await clients.openWindow("/");
+        await self.clients.openWindow("/");
       }
     } catch (error) {
       console.error("Failed to handle notification click without URL:", error);

@@ -1,12 +1,20 @@
+import path from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      lib: path.resolve(__dirname, "./src/lib"),
+      components: path.resolve(__dirname, "./src/components"),
+      pages: path.resolve(__dirname, "./src/pages"),
+      assets: path.resolve(__dirname, "./src/assets"),
+    },
+  },
   plugins: [
     react(),
-    tsconfigPaths(),
     VitePWA({
       includeAssets: [
         "favicon.svg",
@@ -16,7 +24,6 @@ export default defineConfig({
       ],
       registerType: "autoUpdate",
       strategies: "injectManifest",
-
       srcDir: "src",
       filename: "sw.ts",
       devOptions: {

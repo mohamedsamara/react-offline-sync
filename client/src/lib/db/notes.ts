@@ -1,11 +1,10 @@
 import { Note, NoteSyncStatus } from "lib/types";
-import { NoteFormValues } from "lib/validations";
 
 import { openDB, DBSchema } from "idb";
 
 interface NotesDB extends DBSchema {
   notes: {
-    key: number;
+    key: string;
     value: Note;
     indexes: {
       "by-date": string;
@@ -23,8 +22,7 @@ export const openNotesDatabase = async () => {
     upgrade(db) {
       // Notes Store
       const notesStore = db.createObjectStore(NOTES_DB_STORE_NAME, {
-        keyPath: "id",
-        autoIncrement: true,
+        keyPath: "uid",
       });
       notesStore.createIndex("by-date", "updatedAt");
       notesStore.createIndex("by-status", "syncStatus");
@@ -55,47 +53,28 @@ export const dbGetNotesByStatus = async (status: NoteSyncStatus) => {
   return notes;
 };
 
-export const dbAddNote = async (note: NoteFormValues) => {
+export const dbAddNote = async (note: Note) => {
   const { store, tx } = await getNotesDatabase();
-  const newNote = {
-    ...note,
-    // Add default properties
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    isDeleted: false,
-    syncStatus: "NONE",
-  } as Note;
-  const id = await store.add(newNote);
+  const id = await store.add(note);
   await tx.done;
-  return { ...newNote, id };
-};
-
-export const dbBatchAddNotes = async (notes: Note[]) => {
-  const { store, tx } = await getNotesDatabase();
-  await store.clear();
-  await Promise.all(
-    notes.map((note) => {
-      return store.add(note);
-    })
-  );
-  await tx.done;
+  return { ...note, id };
 };
 
 export const dbUpdateNoteStatus = async (
-  id: number,
+  uid: string,
   status: NoteSyncStatus
 ) => {
   const { store, tx } = await getNotesDatabase();
-  const note = await store.get(id);
+  const note = await store.get(uid);
   if (!note) return;
   note.syncStatus = status;
-  store.put(note);
+  await store.put(note);
   await tx.done;
 };
 
-export const dbDeleteNote = async (id: number) => {
+export const dbDeleteNote = async (uid: string) => {
   const { store, tx } = await getNotesDatabase();
-  store.delete(id);
+  await store.delete(uid);
   await tx.done;
 };
 

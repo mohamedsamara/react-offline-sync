@@ -33,18 +33,6 @@ export const createNote = async (note: Note): Promise<ApiResponse<Note>> => {
   return result;
 };
 
-export const deleteNote = async (uid: string): Promise<ApiResponse<Note>> => {
-  const response = await fetch(`${API_URL}/notes/${uid}`, {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-  });
-  if (!response.ok) {
-    throw new Error("Failed to delete a note on server");
-  }
-  const result: ApiResponse<Note> = await response.json();
-  return result;
-};
-
 export const updateNote = async (note: Note): Promise<ApiResponse<Note>> => {
   const response = await fetch(`${API_URL}/notes/${note.uid}`, {
     method: "PUT",
@@ -56,6 +44,18 @@ export const updateNote = async (note: Note): Promise<ApiResponse<Note>> => {
 
   if (!response.ok) throw new Error("Failed to update the note on the server");
 
+  const result: ApiResponse<Note> = await response.json();
+  return result;
+};
+
+export const deleteNote = async (uid: string): Promise<ApiResponse<Note>> => {
+  const response = await fetch(`${API_URL}/notes/${uid}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to delete a note on server");
+  }
   const result: ApiResponse<Note> = await response.json();
   return result;
 };

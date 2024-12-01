@@ -1,4 +1,4 @@
-import { dbGetNotesByStatus, dbDeleteNote, dbUpdateNote } from "lib/db";
+import { dbGetNotesByStatus, dbUpdateNote } from "lib/db";
 import { createNote, deleteNote, fetchNote, updateNote } from "lib/api";
 
 // Sync added notes
@@ -7,13 +7,10 @@ export const syncAddedNotes = async () => {
   if (notesToAdd.length === 0) return;
   for (const localNote of notesToAdd) {
     try {
-      const response = await createNote(localNote);
-      const noteData = response.data;
+      await createNote(localNote);
       await dbUpdateNote({
         ...localNote,
-        uid: noteData.uid,
         syncStatus: "SYNCED",
-        updatedAt: new Date().toISOString(),
       });
     } catch (error) {
       console.error("Sync failed for note", localNote);
@@ -36,7 +33,6 @@ export const syncUpdatedNotes = async () => {
           await dbUpdateNote({
             ...serverNote,
             syncStatus: "SYNCED",
-            updatedAt: new Date().toISOString(),
           });
         } else {
           // No change detected between local and server. Resume user update action
@@ -44,7 +40,6 @@ export const syncUpdatedNotes = async () => {
           await dbUpdateNote({
             ...localNote,
             syncStatus: "SYNCED",
-            updatedAt: new Date().toISOString(),
           });
         }
       } else {
@@ -53,7 +48,6 @@ export const syncUpdatedNotes = async () => {
         await dbUpdateNote({
           ...localNote,
           syncStatus: "SYNCED",
-          updatedAt: new Date().toISOString(),
         });
       }
     } catch (error) {
@@ -77,24 +71,32 @@ export const syncDeletedNotes = async () => {
 
           if (serverNote.isDeleted) {
             // Server already deleted the note, delete local note
-            await dbDeleteNote(localNote.id);
+            await dbUpdateNote({
+              ...serverNote,
+              syncStatus: "SYNCED",
+            });
           } else {
             // Server note is not deleted but has a more recent update. Recover local note
             await dbUpdateNote({
               ...serverNote,
-              isDeleted: false,
               syncStatus: "SYNCED",
-              updatedAt: new Date().toISOString(),
             });
           }
         } else {
           // No change detected between local and server. Resume user delete action
           await deleteNote(localNote.uid);
-          await dbDeleteNote(localNote.id);
+          await dbUpdateNote({
+            ...localNote,
+            isDeleted: true,
+            syncStatus: "SYNCED",
+          });
         }
       } else {
         // Server doesn't have this note, so keep the deletion locally
-        await dbDeleteNote(localNote.id);
+        await dbUpdateNote({
+          ...localNote,
+          syncStatus: "SYNCED",
+        });
       }
     } catch (error) {
       console.error("Sync failed for deleted note", error);

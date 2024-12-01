@@ -1,36 +1,53 @@
 import dotenv from "dotenv";
 dotenv.config();
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
-import { v4 as uuidv4 } from "uuid";
 import webpush from "web-push";
+import { z } from "zod";
+import http from "http";
+import { Server } from "socket.io";
+
+import { handleApiError } from "./utils";
+import {
+  PORT,
+  ALLOWED_ORIGINS,
+  FRONTEND_URL,
+  VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY,
+} from "./constants";
+import {
+  Note,
+  Subscription,
+  NotificationPayload,
+  CreateNoteRequest,
+  UpdateNoteRequest,
+  createNoteSchema,
+  updateNoteSchema,
+} from "./types";
 
 const app = express();
-const port = 3000;
 
 app.use(cors());
 app.use(express.json());
 
-const FRONTEND_URL = process.env.FRONTEND_URL;
+// Create an HTTP server from the Express app
+const server = http.createServer(app);
 
-interface Note {
-  id: number;
-  uid: string;
-  title: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  isDeleted: boolean;
-}
+// Setup CORS for Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: ALLOWED_ORIGINS,
+    methods: ["GET", "POST"],
+  },
+});
 
-type Subscription = webpush.PushSubscription;
-
-interface NotificationPayload {
-  title: string;
-  body: string;
-  tag: string;
-  icon?: string;
-}
+// Handle Socket.IO connections
+io.on("connection", (socket) => {
+  console.log("A client connected to the Socket.IO server.");
+  socket.on("disconnect", () => {
+    console.log("A client disconnected.");
+  });
+});
 
 // In-memory notes store (this could later be replaced with a database like MongoDB)
 let notes: Note[] = [];
@@ -39,8 +56,8 @@ let subscriptions: Subscription[] = [];
 
 webpush.setVapidDetails(
   "mailto:example@yourdomain.com",
-  process.env.VAPID_PUBLIC_KEY ?? "",
-  process.env.VAPID_PRIVATE_KEY ?? ""
+  VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY
 );
 
 // Function to send push notification
@@ -97,10 +114,7 @@ app.post("/api/unsubscribe", async (req: Request, res: Response) => {
       .status(200)
       .json({ success: true, message: "Unsubscribed successfully." });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Your request could not be processed. Please try again.",
-    });
+    handleApiError(error, res);
   }
 });
 
@@ -109,10 +123,7 @@ app.get("/api/notes", (req: Request, res: Response) => {
   try {
     res.json({ success: true, data: notes });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Your request could not be processed. Please try again.",
-    });
+    handleApiError(error, res);
   }
 });
 
@@ -137,32 +148,29 @@ app.get("/api/notes/:uid", (req: Request, res: Response) => {
 
     res.json({ success: true, data: note });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Your request could not be processed. Please try again.",
-    });
+    handleApiError(error, res);
   }
 });
 
 // POST: Add a new note
 app.post("/api/notes", (req: Request, res: Response) => {
   try {
-    const { id, title, content, synced, createdAt, updatedAt } = req.body;
+    const validatedBody: CreateNoteRequest = createNoteSchema.parse(req.body);
 
-    if (!title || !content) {
+    const { uid, title, content, createdAt, updatedAt } = validatedBody;
+
+    if (!title || !content || !createdAt || !updatedAt) {
       return res
         .status(400)
         .json({ success: false, message: "Title and content are required." });
     }
 
     const newNote = {
-      uid: uuidv4(),
-      id,
+      uid: uid,
       title,
       content,
       createdAt,
       updatedAt,
-      synced,
       isDeleted: false,
     };
 
@@ -179,32 +187,33 @@ app.post("/api/notes", (req: Request, res: Response) => {
       sendPushNotification(subscription, notificationPayload);
     });
 
+    io.emit("note-update", { action: "add", note: newNote });
+
     res.status(201).json({ success: true, data: newNote });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Your request could not be processed. Please try again.",
-    });
+    handleApiError(error, res);
   }
 });
 
 // PUT: Update a note by uid
 app.put("/api/notes/:uid", (req: Request, res: Response) => {
   try {
+    const validatedBody: UpdateNoteRequest = updateNoteSchema.parse(req.body);
+
+    const { title, content, updatedAt } = validatedBody;
+
+    if (!title || !content || !updatedAt) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Title and content are required." });
+    }
+
     const noteId = req.params.uid;
-    const updatedNote = req.body;
 
     if (!noteId) {
       return res
         .status(400)
         .json({ success: false, message: "Note ID is required." });
-    }
-
-    if (!updatedNote || typeof updatedNote !== "object") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid note data provided.",
-      });
     }
 
     const noteToUpdate = notes.find((note) => note.uid === noteId);
@@ -215,11 +224,18 @@ app.put("/api/notes/:uid", (req: Request, res: Response) => {
         .json({ success: false, message: "Note not found." });
     }
 
-    notes = notes.map((n) => (n.uid === noteId ? { ...n, ...updatedNote } : n));
+    const newNote = {
+      ...noteToUpdate,
+      title,
+      content,
+      updatedAt,
+    };
+
+    notes = notes.map((n) => (n.uid === noteId ? { ...newNote } : n));
 
     const notificationPayload = {
       title: "Note Updated",
-      body: `${updatedNote.title} was updated.`,
+      body: `${title} was updated.`,
       url: `${FRONTEND_URL}/notes`,
       tag: "update-note",
     };
@@ -228,15 +244,14 @@ app.put("/api/notes/:uid", (req: Request, res: Response) => {
       sendPushNotification(subscription, notificationPayload);
     });
 
+    io.emit("note-update", { action: "update", note: newNote });
+
     res.status(200).json({
       success: true,
+      data: newNote,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Your request could not be processed. Please try again.",
-    });
+    handleApiError(error, res);
   }
 });
 
@@ -260,6 +275,7 @@ app.delete("/api/notes/:uid", (req: Request, res: Response) => {
     }
 
     noteToUpdate.isDeleted = true;
+    noteToUpdate.updatedAt = new Date().toISOString();
 
     const notificationPayload = {
       title: "Note Deleted",
@@ -272,19 +288,26 @@ app.delete("/api/notes/:uid", (req: Request, res: Response) => {
       sendPushNotification(subscription, notificationPayload);
     });
 
+    io.emit("note-update", { action: "delete", note: noteToUpdate });
+
     res.status(200).json({
       success: true,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Your request could not be processed. Please try again.",
-    });
+    handleApiError(error, res);
   }
 });
 
+// Middleware for other routes and error handling...
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error("Unexpected error occurred:", err);
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+  });
+});
+
 // Start the server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+server.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });

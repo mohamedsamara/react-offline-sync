@@ -46,7 +46,7 @@ const Notes = () => {
         <div className="container p-4 mx-auto my-8">
           <Card>
             <div className="flex items-center justify-between">
-              <h4>Offline Notes App</h4>
+              <h3>Offline Notes App</h3>
               <PushNotification />
             </div>
 
@@ -105,17 +105,19 @@ const Notes = () => {
             </form>
           </Card>
           <div className="mt-8">
-            <h2 className="mb-2 text-lg font-medium">Notes:</h2>
+            <h4 className="mb-2">Notes</h4>
             {notes.length > 0 ? (
               <ul className="space-y-4">
                 {notes.map((note) => (
-                  <li key={note.id} className="p-4 border rounded-lg shadow-sm">
+                  <li
+                    key={note.uid}
+                    className="p-4 border rounded-lg shadow-sm"
+                  >
                     <h5>{note.title}</h5>
                     <p>{note.content}</p>
                     <span className="text-red-500">{note.syncStatus}</span>
                     <div>{note.createdAt}</div>
                     <div>{note.updatedAt}</div>
-                    <div>ID:{note.id}</div>
                     <div>uid: {note.uid}</div>
                     <div className="flex justify-end mt-2">
                       <Button
