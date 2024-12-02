@@ -1,14 +1,30 @@
+import { Badge } from "flowbite-react";
+
 import { Note } from "lib/types";
+import { formatDateTimeString } from "lib/utils";
 
 const NoteItem = ({ note }: { note: Note }) => {
+  const createdAt = formatDateTimeString(note.createdAt);
+  const updatedAt = formatDateTimeString(note.updatedAt);
+
   return (
-    <div>
-      <h5>{note.title}</h5>
-      <p>{note.content}</p>
-      <span className="text-red-500">{note.syncStatus}</span>
-      <div>{note.createdAt}</div>
-      <div>{note.updatedAt}</div>
-      <div>uid: {note.uid}</div>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h5 className="text-slate-900">{note.title}</h5>
+        <Badge color="info">{note.syncStatus}</Badge>
+      </div>
+      <div className="space-y-2 text-slate-600">
+        <p>{note.content}</p>
+        <div>
+          <span className="text-slate-900">{`uid `}</span>({note.uid})
+        </div>
+        <div>
+          <span className="text-slate-900">{`Created at `}</span>({createdAt})
+        </div>
+        <div>
+          <span className="text-slate-900">{`Updated at `}</span>({updatedAt})
+        </div>
+      </div>
     </div>
   );
 };

@@ -27,7 +27,7 @@ export const useNotes = () => {
       .filter((n) => !n.isDeleted)
       .sort(
         (a, b) =>
-          new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       );
     setNotes(formattedNotes);
   };

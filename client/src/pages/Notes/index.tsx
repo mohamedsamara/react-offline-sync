@@ -1,15 +1,19 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TextInput, Textarea, Button, Card, Label } from "flowbite-react";
+import { TextInput, Textarea, Button, Card, Label, HR } from "flowbite-react";
+import { MdOutlineArrowBack } from "react-icons/md";
 
 import { NoteFormValues, noteSchema } from "lib/validations";
 import { Note } from "lib/types";
 import { useNotes } from "lib/hooks";
 import EditNote from "./EditNote";
 import PushNotification from "./PushNotification";
+import NoteItem from "./NoteItem";
 
 const Notes = () => {
+  const navigate = useNavigate();
   const { notes, addNote, deleteNote, updateNote } = useNotes();
 
   const [editNoteModal, setEditNoteModal] = useState<{
@@ -43,6 +47,11 @@ const Notes = () => {
   return (
     <>
       <main className="flex flex-col h-screen overflow-auto">
+        <div className="p-4">
+          <Button color="gray" onClick={() => navigate("/")}>
+            <MdOutlineArrowBack className="w-5 h-5" />
+          </Button>
+        </div>
         <div className="container p-4 mx-auto my-8">
           <Card>
             <div className="flex items-center justify-between">
@@ -113,13 +122,9 @@ const Notes = () => {
                     key={note.uid}
                     className="p-4 border rounded-lg shadow-sm"
                   >
-                    <h5>{note.title}</h5>
-                    <p>{note.content}</p>
-                    <span className="text-red-500">{note.syncStatus}</span>
-                    <div>{note.createdAt}</div>
-                    <div>{note.updatedAt}</div>
-                    <div>uid: {note.uid}</div>
-                    <div className="flex justify-end mt-2">
+                    <NoteItem note={note} />
+                    <HR />
+                    <div className="flex justify-end">
                       <Button
                         color="warning"
                         onClick={() => setEditNoteModal({ isOpen: true, note })}
