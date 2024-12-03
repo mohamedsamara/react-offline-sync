@@ -88,8 +88,8 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: "React Frontend Optimization",
-        short_name: "ReactFrontendOptimization",
+        name: "React Offline Sync",
+        short_name: "ReactOfflineSync",
         description: "A Progressive Web App using Vite, React, and TypeScript.",
         theme_color: "#dd2f44",
         background_color: "#ffffff",
