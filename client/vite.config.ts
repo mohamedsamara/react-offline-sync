@@ -90,7 +90,7 @@ export default defineConfig({
       manifest: {
         name: "React Offline Sync",
         short_name: "ReactOfflineSync",
-        description: "A Progressive Web App using Vite, React, and TypeScript.",
+        description: "React Offline Sync",
         theme_color: "#dd2f44",
         background_color: "#ffffff",
         display: "standalone",
