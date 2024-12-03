@@ -48,7 +48,11 @@ const Notes = () => {
     <>
       <main className="flex flex-col h-screen overflow-auto">
         <div className="p-4">
-          <Button color="gray" onClick={() => navigate("/")}>
+          <Button
+            color="gray"
+            onClick={() => navigate("/")}
+            aria-label="Go back"
+          >
             <MdOutlineArrowBack className="w-5 h-5" />
           </Button>
         </div>
