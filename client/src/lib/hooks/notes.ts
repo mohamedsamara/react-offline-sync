@@ -20,6 +20,7 @@ export const useNotes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const isOnline = useOnlineStatus();
   useSocketNotesUpdates();
+  useNotesPeriodicSync();
 
   const refreshNotes = async () => {
     const dbNotes = await dbGetNotes();
@@ -63,6 +64,7 @@ export const useNotes = () => {
         isDeleted: false,
         syncStatus: "NONE",
       });
+
       setNotes((prevNotes) => [note, ...prevNotes]);
 
       if (isOnline) {
@@ -174,5 +176,17 @@ const useSocketNotesUpdates = () => {
     return () => {
       socket.disconnect();
     };
+  }, []);
+};
+
+const useNotesPeriodicSync = () => {
+  useEffect(() => {
+    const triggerSync = async () => {
+      await triggerSyncTask(SYNC_NOTES.PERIODIC_SYNC);
+    };
+
+    const intervalId = setInterval(triggerSync, 10 * 60 * 1000); // 10 minutes
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 };

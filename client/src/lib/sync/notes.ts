@@ -1,5 +1,16 @@
-import { dbGetNotesByStatus, dbUpdateNote } from "lib/db";
-import { createNote, deleteNote, fetchNote, updateNote } from "lib/api";
+import {
+  dbAddNote,
+  dbGetNotes,
+  dbGetNotesByStatus,
+  dbUpdateNote,
+} from "lib/db";
+import {
+  createNote,
+  deleteNote,
+  fetchNote,
+  fetchNotes,
+  updateNote,
+} from "lib/api";
 
 // Sync added notes
 export const syncAddedNotes = async () => {
@@ -68,7 +79,6 @@ export const syncDeletedNotes = async () => {
       if (serverNote) {
         if (serverNote.updatedAt > localNote.updatedAt) {
           // Server has the latest version, overwrite local
-
           if (serverNote.isDeleted) {
             // Server already deleted the note, delete local note
             await dbUpdateNote({
@@ -79,6 +89,7 @@ export const syncDeletedNotes = async () => {
             // Server note is not deleted but has a more recent update. Recover local note
             await dbUpdateNote({
               ...serverNote,
+              isDeleted: false,
               syncStatus: "SYNCED",
             });
           }
@@ -87,7 +98,6 @@ export const syncDeletedNotes = async () => {
           await deleteNote(localNote.uid);
           await dbUpdateNote({
             ...localNote,
-            isDeleted: true,
             syncStatus: "SYNCED",
           });
         }
@@ -100,6 +110,52 @@ export const syncDeletedNotes = async () => {
       }
     } catch (error) {
       console.error("Sync failed for deleted note", error);
+    }
+  }
+};
+
+export const syncNotes = async () => {
+  const localNotes = await dbGetNotes();
+  const localNoteMap = new Map(localNotes.map((note) => [note.uid, note]));
+
+  const response = await fetchNotes();
+  const serverNotes = response.data;
+
+  const notesToAdd = serverNotes.filter(
+    (serverNote) => !localNoteMap.has(serverNote.uid)
+  );
+
+  if (notesToAdd.length > 0) {
+    for (const note of notesToAdd) {
+      await dbAddNote({ ...note, syncStatus: "NONE" });
+    }
+  }
+
+  const notesToUpdate = serverNotes.filter((serverNote) => {
+    const localNote = localNoteMap.get(serverNote.uid);
+    return localNote && serverNote.updatedAt > localNote.updatedAt;
+  });
+
+  if (notesToUpdate.length > 0) {
+    for (const note of notesToUpdate) {
+      await dbUpdateNote({
+        ...localNoteMap.get(note.uid),
+        ...note,
+      });
+    }
+  }
+
+  const notesToDelete = serverNotes.filter((serverNote) => {
+    const localNote = localNoteMap.get(serverNote.uid);
+    return localNote && !localNote.isDeleted && serverNote.isDeleted;
+  });
+
+  if (notesToDelete.length > 0) {
+    for (const note of notesToDelete) {
+      await dbUpdateNote({
+        ...localNoteMap.get(note.uid),
+        ...note,
+      });
     }
   }
 };

@@ -55,7 +55,7 @@ const Notes = () => {
         <div className="container p-4 mx-auto my-8">
           <Card>
             <div className="flex items-center justify-between">
-              <h3>Offline Notes App</h3>
+              <h3>Add Note</h3>
               <PushNotification />
             </div>
 
@@ -114,7 +114,7 @@ const Notes = () => {
             </form>
           </Card>
           <div className="mt-8">
-            <h4 className="mb-2">Notes</h4>
+            <h3 className="mb-2">Notes</h3>
             {notes.length > 0 ? (
               <ul className="space-y-4">
                 {notes.map((note) => (

@@ -7,12 +7,6 @@ import NoMatch from "pages/NoMatch";
 import SpinnerOverlay from "components/SpinnerOverlay";
 import ErrorBoundary from "./components/ErrorBoundary";
 
-export interface Todo {
-  id: number;
-  text: string;
-  completed: boolean;
-}
-
 const App = () => {
   return (
     <ErrorBoundary>

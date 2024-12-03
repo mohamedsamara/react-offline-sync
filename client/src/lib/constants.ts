@@ -14,6 +14,7 @@ export enum SYNC_NOTES {
   NEW = "sync-new-notes",
   DELETED = "sync-deleted-notes",
   UPDATED = "sync-updated-notes",
+  PERIODIC_SYNC = "periodic-sync",
 }
 
 export enum POST_MESSAGES {

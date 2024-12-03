@@ -27,10 +27,14 @@ export const createNoteSchema = z.object({
   updatedAt: z.string().min(1, "Updated at is required"),
 });
 
-export const updateNoteSchema = createNoteSchema.omit({
-  uid: true,
-  createdAt: true,
-});
+export const updateNoteSchema = createNoteSchema
+  .omit({
+    uid: true,
+    createdAt: true,
+  })
+  .extend({
+    isDeleted: z.boolean().optional(),
+  });
 
 export type CreateNoteRequest = z.infer<typeof createNoteSchema>;
 export type UpdateNoteRequest = z.infer<typeof updateNoteSchema>;

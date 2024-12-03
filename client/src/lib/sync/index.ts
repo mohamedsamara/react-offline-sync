@@ -1,5 +1,10 @@
 import { POST_MESSAGES, SYNC_NOTES } from "lib/constants";
-import { syncAddedNotes, syncDeletedNotes, syncUpdatedNotes } from "./notes";
+import {
+  syncAddedNotes,
+  syncDeletedNotes,
+  syncUpdatedNotes,
+  syncNotes,
+} from "./notes";
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -37,6 +42,13 @@ export const syncEvent = (event: any) => {
     case SYNC_NOTES.UPDATED:
       event.waitUntil(
         syncUpdatedNotes().then(() =>
+          sendPostMessage(POST_MESSAGES.NOTES_SYNC_COMPLETE)
+        )
+      );
+      break;
+    case SYNC_NOTES.PERIODIC_SYNC:
+      event.waitUntil(
+        syncNotes().then(() =>
           sendPostMessage(POST_MESSAGES.NOTES_SYNC_COMPLETE)
         )
       );
