@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "license": "MIT",
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
     "flowbite-react": "^0.10.2",

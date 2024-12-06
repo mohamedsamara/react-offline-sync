@@ -4,7 +4,16 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import { visualizer } from "rollup-plugin-visualizer";
 
-const SEPARATE_MODULES = ["react-router", "flowbite-react", "react-icons"];
+import { dependencies } from "./package.json";
+
+const renderChunks = (deps: Record<string, string>) => {
+  let chunks = {} as Record<string, any>;
+  Object.keys(deps).forEach((key) => {
+    if (["react", "react-router-dom", "react-dom"].includes(key)) return;
+    chunks[key] = [key];
+  });
+  return chunks;
+};
 
 export default defineConfig({
   resolve: {
@@ -21,25 +30,9 @@ export default defineConfig({
     rollupOptions: {
       plugins: [visualizer({ filename: "./dist/stats.html" }) as PluginOption],
       output: {
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            if (
-              id.includes("react") &&
-              !SEPARATE_MODULES.some((module) => id.includes(module))
-            ) {
-              return "react-vendor";
-            }
-            for (const module of SEPARATE_MODULES) {
-              if (id.includes(module)) {
-                return module;
-              }
-            }
-            return "vendor";
-          }
-        },
-        globals: {
-          react: "React",
-          "react-dom": "ReactDOM",
+        manualChunks: {
+          vendor: ["react", "react-router-dom", "react-dom"],
+          ...renderChunks(dependencies),
         },
       },
     },
